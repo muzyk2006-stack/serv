@@ -13,17 +13,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show repo structure
+      - name: Show files
         run: find . -maxdepth 3 | sort
 
       - name: List schemes
         run: xcodebuild -list -project siop/SIoP.xcodeproj
 
-      - name: Build
+      - name: Resolve packages
+        run: xcodebuild -resolvePackageDependencies -project siop/SIoP.xcodeproj
+
+      - name: Build app
         run: |
           xcodebuild \
             -project siop/SIoP.xcodeproj \
             -scheme SIoP \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 15' \
+            CODE_SIGNING_ALLOWED=NO \
             build
