@@ -1,13 +1,12 @@
-name: iOS Build
+name: iOS Build + Screenshot
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
       - name: Checkout
@@ -18,46 +17,57 @@ jobs:
 
       - name: Build app
         run: |
+          set -o pipefail
           xcodebuild \
             -project siop/SIoP.xcodeproj \
             -scheme SIoP \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build | tee build.log
 
-      - name: Archive app
+      - name: Boot simulator
         run: |
-          xcodebuild \
-            -project siop/SIoP.xcodeproj \
-            -scheme SIoP \
-            -archivePath build/SIoP.xcarchive \
-            archive \
-            CODE_SIGNING_ALLOWED=NO
+          xcrun simctl shutdown all || true
+          xcrun simctl boot "iPhone 16" || true
+          xcrun simctl bootstatus "iPhone 16" -b
 
-      - name: Export IPA
+      - name: Find app
         run: |
-          mkdir -p build/export
-          cat <<EOF > exportOptions.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>development</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-          </dict>
-          </plist>
-          EOF
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -type d -name "SIoP.app" | head -n 1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+          echo "$APP_PATH"
 
-          xcodebuild -exportArchive \
-            -archivePath build/SIoP.xcarchive \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath build/export
+      - name: Install app
+        run: |
+          xcrun simctl install booted "$APP_PATH"
 
-      - name: Upload IPA
+      - name: Get bundle identifier
+        run: |
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+          echo "BUNDLE_ID=$BUNDLE_ID" >> $GITHUB_ENV
+          echo "$BUNDLE_ID"
+
+      - name: Launch app
+        run: |
+          xcrun simctl launch booted "$BUNDLE_ID"
+          sleep 8
+
+      - name: Take screenshot
+        run: |
+          mkdir -p screenshots
+          xcrun simctl io booted screenshot screenshots/home.png
+
+      - name: Upload screenshot
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app
-          path: build/export
+          name: app-screenshot
+          path: screenshots
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
