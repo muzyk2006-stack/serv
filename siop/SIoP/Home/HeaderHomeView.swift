@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HeaderHomeView: View {
     var body: some View {
-        Text("SERV CARE NFC - ksia¿ka urz¹dzenia")
+        Text("SERV CARE NFC")
             .font(.title)
             .padding(.top, 50)
         Image(uiImage: UIImage(named: "home.logo")!).resizable()
@@ -20,3 +20,4 @@ struct HeaderHomeView: View {
 #Preview {
     HeaderHomeView()
 }
+
