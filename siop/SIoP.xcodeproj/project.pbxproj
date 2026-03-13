@@ -70,14 +70,14 @@
 			containerPortal = A0E960D12AF69CE6002C202A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A0E960D82AF69CE6002C202A;
-			remoteInfo = SERV CARE NFC;
+			remoteInfo = "SERV CARE NFC";
 		};
 		A0E960F42AF69CE7002C202A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A0E960D12AF69CE6002C202A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A0E960D82AF69CE6002C202A;
-			remoteInfo = SERV CARE NFC;
+			remoteInfo = "SERV CARE NFC";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -962,3 +962,4 @@
 	};
 	rootObject = A0E960D12AF69CE6002C202A /* Project object */;
 }
+
