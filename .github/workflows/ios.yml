@@ -24,10 +24,24 @@ jobs:
 
       - name: Build app
         run: |
+          set -o pipefail
           xcodebuild \
             -project siop/SIoP.xcodeproj \
             -scheme SIoP \
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build 2>&1 | tee xcodebuild.log
+
+      - name: Show Swift errors
+        if: failure()
+        run: |
+          grep -n "error:" xcodebuild.log || true
+          grep -n "SwiftCompile" xcodebuild.log || true
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
